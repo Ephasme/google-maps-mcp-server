@@ -20,6 +20,7 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import Fastify from 'fastify';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
+import { config } from './config.js';
 
 const server = new McpServer(
   { name: 'google-maps-mcp-server', version: '0.1.0' },
@@ -51,7 +52,7 @@ server.registerTool(
     },
   },
   async ({ address }) => {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const apiKey = config.googleMapsApiKey;
     const data = await geocode(apiKey, address);
     const structured = {
       results: data.results.map((r) => ({
@@ -95,7 +96,7 @@ server.registerTool(
     },
   },
   async ({ query }) => {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const apiKey = config.googleMapsApiKey;
     const resp = await placesSearchText(apiKey, query);
     const results = (resp.places ?? []).map((p: Place) => ({
       id: p.id,
@@ -140,7 +141,7 @@ server.registerTool(
     },
   },
   async ({ center_lat, center_lng, radius_meters, included_primary_types, max_result_count }) => {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const apiKey = config.googleMapsApiKey;
     const resp = await placesSearchNearby(
       apiKey,
       { lat: center_lat, lng: center_lng },
@@ -185,7 +186,7 @@ server.registerTool(
     },
   },
   async ({ input, bias_center_lat, bias_center_lng, bias_radius_meters }) => {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const apiKey = config.googleMapsApiKey;
     const resp = await placesAutocomplete(apiKey, input, {
       biasCenter: bias_center_lat !== undefined && bias_center_lng !== undefined ? { lat: bias_center_lat, lng: bias_center_lng } : undefined,
       biasRadiusMeters: bias_radius_meters,
@@ -237,7 +238,7 @@ server.registerTool(
     },
   },
   async ({ place_id }) => {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const apiKey = config.googleMapsApiKey;
     const p = await getPlace(apiKey, place_id);
     const structured = {
       place: {
@@ -299,7 +300,7 @@ server.registerTool(
     },
   },
   async ({ origin, destination, mode }) => {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const apiKey = config.googleMapsApiKey;
     const data = await directions(apiKey, origin, destination, mode ?? 'driving');
     const structured = {
       routes: (data.routes ?? []).map(
@@ -411,7 +412,7 @@ async function startHttpServer() {
     await transport.handleRequest(request.raw, reply.raw);
   });
 
-  const port = Number(process.env.PORT || 3000);
+  const port = config.port;
   await app.listen({ port, host: '0.0.0.0' });
 }
 
