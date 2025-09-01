@@ -1,0 +1,50 @@
+{
+  "name": "google-maps-mcp-server",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for Google Maps APIs (TypeScript, ESM)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier -w .",
+    "format:check": "prettier -c ."
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "google-maps",
+    "typescript",
+    "server"
+  ],
+  "dependencies": {
+    "@googlemaps/google-maps-services-js": "^3.4.2",
+    "@googlemaps/places": "^2.1.0",
+    "@googlemaps/routing": "^2.1.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "fastify": "^4.28.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.4"
+  }
+}
