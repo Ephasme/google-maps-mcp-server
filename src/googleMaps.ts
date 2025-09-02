@@ -25,8 +25,20 @@ export type LatLng = { lat: number; lng: number };
 // One-time initialization for the lifetime of the program
 const API_KEY = config.googleMapsApiKey;
 const httpClient = new Client({});
-const placesClient = new PlacesClient({ fallback: true });
-const routesClient = new RoutesClient({ fallback: true });
+// Important: pass apiKey at client construction to avoid ADC lookup
+const placesClient = new PlacesClient({ apiKey: API_KEY, fallback: true });
+const routesClient = new RoutesClient({ apiKey: API_KEY, fallback: true });
+
+// Minimal startup diagnostics (masked) to verify API key wiring
+function maskKey(k: string): string {
+  if (!k) return '<empty>';
+  if (k.length <= 6) return '*'.repeat(k.length);
+  return `${k.slice(0, 4)}...${k.slice(-2)} (${k.length} chars)`;
+}
+// eslint-disable-next-line no-console
+console.info(
+  `[google-maps] API key configured: ${maskKey(API_KEY)}; transport: REST (fallback=true)`,
+);
 
 type DirectionsMode = 'driving' | 'walking' | 'bicycling' | 'transit';
 const TRAVEL_MODE_MAP: Record<
