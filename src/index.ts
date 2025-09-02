@@ -52,8 +52,7 @@ server.registerTool(
     },
   },
   async ({ address }) => {
-    const apiKey = config.googleMapsApiKey;
-    const data = await geocode(apiKey, address);
+    const data = await geocode(address);
     const structured = {
       results: data.results.map((r) => ({
         formatted_address: r.formatted_address,
@@ -96,8 +95,7 @@ server.registerTool(
     },
   },
   async ({ query }) => {
-    const apiKey = config.googleMapsApiKey;
-    const resp = await placesSearchText(apiKey, query);
+    const resp = await placesSearchText(query);
     const results = (resp.places ?? []).map((p: Place) => ({
       id: p.id,
       display_name: p.displayName?.text,
@@ -141,9 +139,7 @@ server.registerTool(
     },
   },
   async ({ center_lat, center_lng, radius_meters, included_primary_types, max_result_count }) => {
-    const apiKey = config.googleMapsApiKey;
     const resp = await placesSearchNearby(
-      apiKey,
       { lat: center_lat, lng: center_lng },
       radius_meters,
       { includedPrimaryTypes: included_primary_types, maxResultCount: max_result_count },
@@ -186,8 +182,7 @@ server.registerTool(
     },
   },
   async ({ input, bias_center_lat, bias_center_lng, bias_radius_meters }) => {
-    const apiKey = config.googleMapsApiKey;
-    const resp = await placesAutocomplete(apiKey, input, {
+    const resp = await placesAutocomplete(input, {
       biasCenter: bias_center_lat !== undefined && bias_center_lng !== undefined ? { lat: bias_center_lat, lng: bias_center_lng } : undefined,
       biasRadiusMeters: bias_radius_meters,
     });
@@ -238,8 +233,7 @@ server.registerTool(
     },
   },
   async ({ place_id }) => {
-    const apiKey = config.googleMapsApiKey;
-    const p = await getPlace(apiKey, place_id);
+    const p = await getPlace(place_id);
     const structured = {
       place: {
         id: p.id,
@@ -300,8 +294,7 @@ server.registerTool(
     },
   },
   async ({ origin, destination, mode }) => {
-    const apiKey = config.googleMapsApiKey;
-    const data = await directions(apiKey, origin, destination, mode ?? 'driving');
+    const data = await directions(origin, destination, mode ?? 'driving');
     const structured = {
       routes: (data.routes ?? []).map(
         (route: Route) => ({

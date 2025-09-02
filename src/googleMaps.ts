@@ -5,6 +5,7 @@ import {
 } from '@googlemaps/google-maps-services-js';
 import { RoutesClient, protos as routingProtos } from '@googlemaps/routing';
 import { PlacesClient, protos as placesProtos } from '@googlemaps/places';
+import { config } from './config.js';
 type ComputeRoutesRequest = routingProtos.google.maps.routing.v2.IComputeRoutesRequest;
 type ComputeRoutesResponse = routingProtos.google.maps.routing.v2.IComputeRoutesResponse;
 const RouteTravelMode = routingProtos.google.maps.routing.v2.RouteTravelMode;
@@ -21,15 +22,11 @@ type GetPlaceRequest = placesProtos.google.maps.places.v1.IGetPlaceRequest;
 
 export type LatLng = { lat: number; lng: number };
 
-const client = new Client({});
-const placesClient = new PlacesClient({ fallback: true });
-
-function assertApiKey(apiKey?: string): string {
-  if (!apiKey) {
-    throw new Error('Missing GOOGLE_MAPS_API_KEY environment variable');
-  }
-  return apiKey;
-}
+// One-time initialization for the lifetime of the program
+const API_KEY = config.googleMapsApiKey;
+const httpClient = new Client({});
+const placesClient = new PlacesClient({ apiKey: API_KEY, fallback: true });
+const routesClient = new RoutesClient({ apiKey: API_KEY, fallback: true });
 
 type DirectionsMode = 'driving' | 'walking' | 'bicycling' | 'transit';
 const TRAVEL_MODE_MAP: Record<
@@ -42,38 +39,27 @@ const TRAVEL_MODE_MAP: Record<
   transit: RouteTravelMode.TRANSIT,
 };
 
-export async function geocode(
-  apiKey: string | undefined,
-  address: string,
-): Promise<GeocodeResponseData> {
-  const key = assertApiKey(apiKey);
-  const res = await client.geocode({
-    params: { address, key },
+export async function geocode(address: string): Promise<GeocodeResponseData> {
+  const res = await httpClient.geocode({
+    params: { address, key: API_KEY },
     timeout: 10000,
   });
   return res.data;
 }
 
-export async function searchPlaces(
-  apiKey: string | undefined,
-  query: string,
-): Promise<TextSearchResponseData> {
-  const key = assertApiKey(apiKey);
-  const res = await client.textSearch({
-    params: { query, key },
+export async function searchPlaces(query: string): Promise<TextSearchResponseData> {
+  const res = await httpClient.textSearch({
+    params: { query, key: API_KEY },
     timeout: 10000,
   });
   return res.data;
 }
 
 export async function directions(
-  apiKey: string | undefined,
   origin: string,
   destination: string,
   mode: DirectionsMode = 'driving',
 ): Promise<ComputeRoutesResponse> {
-  const key = assertApiKey(apiKey);
-  const routing = new RoutesClient({ fallback: true });
   const request: ComputeRoutesRequest = {
     origin: { address: origin },
     destination: { address: destination },
@@ -88,22 +74,17 @@ export async function directions(
     'routes.legs.duration',
   ].join(',');
 
-  const [response] = await routing.computeRoutes(request, {
+  const [response] = await routesClient.computeRoutes(request, {
     otherArgs: {
       headers: {
         'X-Goog-FieldMask': fieldMask,
-        'X-Goog-Api-Key': key,
       },
     },
   });
   return response;
 }
 
-export async function placesSearchText(
-  apiKey: string | undefined,
-  textQuery: string,
-): Promise<SearchTextResponse> {
-  const key = assertApiKey(apiKey);
+export async function placesSearchText(textQuery: string): Promise<SearchTextResponse> {
   const req: SearchTextRequest = { textQuery };
   const [resp] = await placesClient.searchText(req, {
     otherArgs: {
@@ -117,7 +98,6 @@ export async function placesSearchText(
           'places.userRatingCount',
           'places.primaryType',
         ].join(','),
-        'X-Goog-Api-Key': key,
       },
     },
   });
@@ -125,12 +105,10 @@ export async function placesSearchText(
 }
 
 export async function placesSearchNearby(
-  apiKey: string | undefined,
   center: { lat: number; lng: number },
   radiusMeters: number,
   opts?: { includedPrimaryTypes?: string[]; maxResultCount?: number },
 ): Promise<SearchNearbyResponse> {
-  const key = assertApiKey(apiKey);
   const req: SearchNearbyRequest = {
     maxResultCount: opts?.maxResultCount,
     includedPrimaryTypes: opts?.includedPrimaryTypes,
@@ -153,7 +131,6 @@ export async function placesSearchNearby(
           'places.userRatingCount',
           'places.primaryType',
         ].join(','),
-        'X-Goog-Api-Key': key,
       },
     },
   });
@@ -161,11 +138,9 @@ export async function placesSearchNearby(
 }
 
 export async function placesAutocomplete(
-  apiKey: string | undefined,
   input: string,
   opts?: { biasCenter?: { lat: number; lng: number }; biasRadiusMeters?: number },
 ): Promise<AutocompletePlacesResponse> {
-  const key = assertApiKey(apiKey);
   const req: AutocompletePlacesRequest = {
     input,
     locationBias:
@@ -187,15 +162,13 @@ export async function placesAutocomplete(
           'suggestions.placePrediction.distanceMeters',
           'suggestions.queryPrediction.text',
         ].join(','),
-        'X-Goog-Api-Key': key,
       },
     },
   });
   return resp;
 }
 
-export async function getPlace(apiKey: string | undefined, placeId: string): Promise<PlaceT> {
-  const key = assertApiKey(apiKey);
+export async function getPlace(placeId: string): Promise<PlaceT> {
   const name = placeId.startsWith('places/') ? placeId : `places/${placeId}`;
   const req: GetPlaceRequest = { name };
   const [place] = await placesClient.getPlace(req, {
@@ -213,7 +186,6 @@ export async function getPlace(apiKey: string | undefined, placeId: string): Pro
           'internationalPhoneNumber',
           'websiteUri',
         ].join(','),
-        'X-Goog-Api-Key': key,
       },
     },
   });
