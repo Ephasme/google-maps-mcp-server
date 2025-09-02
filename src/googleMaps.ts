@@ -25,8 +25,8 @@ export type LatLng = { lat: number; lng: number };
 // One-time initialization for the lifetime of the program
 const API_KEY = config.googleMapsApiKey;
 const httpClient = new Client({});
-const placesClient = new PlacesClient({ apiKey: API_KEY, fallback: true });
-const routesClient = new RoutesClient({ apiKey: API_KEY, fallback: true });
+const placesClient = new PlacesClient({ fallback: true });
+const routesClient = new RoutesClient({ fallback: true });
 
 type DirectionsMode = 'driving' | 'walking' | 'bicycling' | 'transit';
 const TRAVEL_MODE_MAP: Record<
@@ -78,6 +78,7 @@ export async function directions(
     otherArgs: {
       headers: {
         'X-Goog-FieldMask': fieldMask,
+        'X-Goog-Api-Key': API_KEY,
       },
     },
   });
@@ -98,6 +99,7 @@ export async function placesSearchText(textQuery: string): Promise<SearchTextRes
           'places.userRatingCount',
           'places.primaryType',
         ].join(','),
+        'X-Goog-Api-Key': API_KEY,
       },
     },
   });
@@ -131,6 +133,7 @@ export async function placesSearchNearby(
           'places.userRatingCount',
           'places.primaryType',
         ].join(','),
+        'X-Goog-Api-Key': API_KEY,
       },
     },
   });
@@ -162,6 +165,7 @@ export async function placesAutocomplete(
           'suggestions.placePrediction.distanceMeters',
           'suggestions.queryPrediction.text',
         ].join(','),
+        'X-Goog-Api-Key': API_KEY,
       },
     },
   });
@@ -186,6 +190,7 @@ export async function getPlace(placeId: string): Promise<PlaceT> {
           'internationalPhoneNumber',
           'websiteUri',
         ].join(','),
+        'X-Goog-Api-Key': API_KEY,
       },
     },
   });
